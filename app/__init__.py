@@ -31,8 +31,11 @@ Initialize application
 """
 
 import os
-from .views.stack import MOD_STACK
-from .views.heatmap import MOD_HEATMAP
+from app.views.flame_graph import MOD_FLAME_GRAPH
+from app.views.heatmap import MOD_HEATMAP
+from app.views.profile_list import MOD_PROFILE_LIST
+from app.views.differential import MOD_DIFFERENTIAL_FLAME_GRAPH
+from app.views.elided import MOD_ELIDED_FLAME_GRAPH
 
 from flask import Flask, jsonify
 
@@ -42,9 +45,11 @@ APP = Flask(__name__,
 
 APP.config.from_pyfile('config.py', silent=True)
 
+
 @APP.route('/')
 def root():
     return APP.send_static_file('index.html')
+
 
 @APP.errorhandler(400)
 def bad_request(err):
@@ -63,9 +68,12 @@ def page_not_found(err):
 @APP.errorhandler(500)
 def internal_error(err):
     """Return a custom 500 error."""
-    return jsonify(error='Sorry, unexpected error: {}'.format(err)), 500
+    return jsonify(error=err.description), 500
 
 
 # Registering module blueprints
-APP.register_blueprint(MOD_STACK)
+APP.register_blueprint(MOD_FLAME_GRAPH)
 APP.register_blueprint(MOD_HEATMAP)
+APP.register_blueprint(MOD_PROFILE_LIST)
+APP.register_blueprint(MOD_DIFFERENTIAL_FLAME_GRAPH)
+APP.register_blueprint(MOD_ELIDED_FLAME_GRAPH)

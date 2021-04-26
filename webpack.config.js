@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {
+const config = {
   entry: path.resolve(__dirname, 'src/index'),
   output: {
     path: path.resolve(__dirname, 'app/public'),
@@ -60,9 +60,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development' // use 'development' unless process.env.NODE_ENV is defined
-    }),
+    new webpack.EnvironmentPlugin(['NODE_ENV']),
     new webpack.LoaderOptionsPlugin({
       options: {
         eslint: {
@@ -79,5 +77,31 @@ module.exports = {
   performance: {
     hints: false,
   },
+  devServer: {
+    proxy: {
+      '/profile/**': {
+        target: 'http://localhost:5000',
+      },
+      '/heatmap/**': {
+        target: 'http://localhost:5000',
+      },
+      '/flamegraph/**': {
+        target: 'http://localhost:5000',
+      },
+      '/differential/**': {
+        target: 'http://localhost:5000',
+      },
+      '/elided/**': {
+        target: 'http://localhost:5000',
+      },
+    },
+  },
 }
 
+module.exports = (env, argv) => {
+  if (argv.mode === 'development') {
+    config.devtool = 'source-map';
+  }
+
+  return config;
+};

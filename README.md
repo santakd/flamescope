@@ -26,6 +26,8 @@ $ pip install -r requirements.txt
 $ python run.py
 ```
 
+(Note python3 is assumed, python2 _may_ work)
+
 Then browse to http://127.0.0.1:5000/, and you can begin exploring profiles from the `examples` directory. You can add new profiles to that directory, collected using Linux `perf`. Here are instructions for a generic CPU profile at 49 Hertz for 120 seconds:
 
 ```bash
@@ -33,6 +35,8 @@ $ sudo perf record -F 49 -a -g -- sleep 120
 $ sudo perf script --header > stacks.myproductionapp.2018-03-30_01
 $ gzip stacks.myproductionapp.2018-03-30_01	# optional
 ```
+
+If you are profiling C++ code, you may want to pipe stacks through `c++filt` to get readable frames.
 
 There are extra steps to fetch stacks correctly for some runtimes, depending on the runtime. For example, we've previously published Java steps in [Java in Flames](https://medium.com/netflix-techblog/java-in-flames-e763b3d32166): java needs to be running with the -XX:+PreserveFramePointer option, and [perf-map-agent](https://github.com/jvm-profiling-tools/perf-map-agent) must be run immediately after the `perf record` to dump a JIT symbol table in /tmp.
 
@@ -50,7 +54,7 @@ FlameScope configuration file can be found in `app/config.py`.
 
 ```python
 DEBUG = True # run the web server in debug mode
-STACK_DIR = 'examples' # path where flamescope will look for profiles
+PROFILE_DIR = 'examples' # path where flamescope will look for profiles
 HOST = '127.0.0.1' # web server host
 PORT = 5000 # web server port
 JSONIFY_PRETTYPRINT_REGULAR = False # pretty print api json responses
@@ -77,6 +81,23 @@ Webpack can also watch and recompile files whenever they change. To build and st
 ```bash
 $ npm run webpack-watch
 ```
+
+## Building a Docker Image
+
+FlameScope provides a Dockerfile to build a Docker image:
+
+```bash
+$ cd flamescope
+$ docker build -t flamescope .
+```
+
+The container expects the profiles to be bind-mounted into `/profiles` and listens on port 5000. To view profiles from `/tmp/profiles`, start the container with the following command:
+
+```
+$ docker run --rm -it -v /tmp/profiles:/profiles:ro -p 5000:5000 flamescope
+```
+
+Then access FlameScope on [http://127.0.0.1:5000](http://127.0.0.1:5000/)
 
 ## References
 
